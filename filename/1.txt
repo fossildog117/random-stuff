@@ -1,0 +1,146 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+int moles[] = {2, 3, 4, 5, 6, 9, 10, 11, 14, 15};
+
+int size = sizeof(moles)/sizeof(moles[0]);
+int patternUsed[20];
+int holes[16];
+
+void setUp(){ // SETTING UP THE ARRAY (TABLE) WITH THE MOLES
+    int i;
+    for (i = 0; i<16; i++){
+        holes[i] = 0;
+        // 0 REPRESENTS EMPTY HOLES
+    }
+    for(i = 0; i<size; i++){
+        holes[((moles[i] - 1) )] = 1;
+        // 1 REPRESENTS MOLES
+    }
+    for(i = 0; i<20; i++){
+        patternUsed[i] = 0;
+    }
+}
+void molesPop(int number){ // CHECK TO SEE IF THE MOLE IS POPPED OR HIDDEN
+    if(holes[number]==1){
+        holes[number] = 0;
+    } else {
+        holes[number] = 1;
+    }
+}
+void hit(int number){ // HIT THE HOLE NUMBER
+    if(holes[number - 1]==1){// POP THE WHOLE WHACKED
+        holes[number - 1] = 0;
+        if(number%4 != 1){ // POP TO THE LEFT
+            molesPop(number - 2);
+        }
+        if(number%4 != 0){ // POP TO THE RIGHT
+            molesPop(number);
+        }
+        if(number != 1 || number != 2 || number!= 3 || number!=4){
+            molesPop(number + 3); //POP UP ABOVE
+        }
+        if(number != 13 || number != 14 || number != 15 || number != 16){
+            molesPop(number - 5); // POP DOWN BELOW
+        }
+    }
+}
+void printGrid(){ // CALL THIS FUNCTION IF YOU WANT A VISUAL REPRESNTATION
+    printf("%d %d %d %d\n", holes[12], holes[13], holes[14], holes[15]);
+    printf("%d %d %d %d\n", holes[8], holes[9], holes[10], holes[11]);
+    printf("%d %d %d %d\n", holes[4], holes[5], holes[6], holes[7]);
+    printf("%d %d %d %d\n\n", holes[0], holes[1], holes[2], holes[3]);
+}
+int checkIfAllMolesGone(){ // CHECK TO SEE IF ALL THE MOLES HAVE DISSAPPEARED
+    int i = 0;
+    for(; i<16; i++){
+        if(holes[i] != 0){
+            return 0;
+        }
+    }
+    return 1;
+}
+int runPattern(){ // FIND A SEQUENCE OF HITS TO MAKE THE MOLES DISSAPPEAR
+    setUp();
+    int i, counter = 0;
+    int alreadyDone[16];
+    for(i = 0; i<16; i++){
+        alreadyDone[i] = 0;
+    }
+    int inArrayCheck1 = 1;
+    int whileLoopCheck = 0;
+    int checker, x, i2;
+    for(i = 0; i<16; i++){
+        x = rand() % 16;
+        if(x == 0){
+            x = 16;
+        }
+
+        while(whileLoopCheck == 0){
+            for(i2 = 0; i2 < 16; i2++){
+                if(x == alreadyDone[i2]){
+                    inArrayCheck1 = 0;
+                    break;
+                } else {
+                    inArrayCheck1 = 1;
+                }
+            }
+            if(inArrayCheck1 == 1){
+                alreadyDone[i] = x;
+                whileLoopCheck = 1;
+            } else {
+                whileLoopCheck = 0;
+                x = rand() % 16;
+                if(x == 0){
+                    x  = 16;
+                }
+            }
+        }
+
+        if(holes[x - 1] == 1){
+            patternUsed[i] = x;
+            hit(x);
+        }
+        checker = checkIfAllMolesGone();
+        if(checker == 1){
+            for(i = 0; i<16; i++){
+                if(patternUsed[i] != 0){
+                    counter++;
+                }
+            }
+            return counter;
+        }
+        inArrayCheck1 = 1;
+        whileLoopCheck = 0;
+    }
+    if(checker!=1){
+        runPattern();
+    }
+}
+
+int main(){
+
+
+    int solutionSize = 0;
+    int tempSize = 0;
+    int loop = 0;
+    int i;
+    while(loop < 10000){
+        tempSize = runPattern();
+        if(tempSize < solutionSize || loop == 0){
+            solutionSize = tempSize;
+            for(i = 0; i<16; i++){
+                if(patternUsed[i] != 0){
+                    printf("%d ", patternUsed[i]);
+                }
+            }
+            printf("\n");
+        }
+        if(loop%2500==0){
+            srand(time(NULL));
+        }
+        loop++;
+    }
+
+    return 0;
+}
